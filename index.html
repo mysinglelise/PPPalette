@@ -2867,7 +2867,14 @@ function onMidi(e){
 if(navigator.requestMIDIAccess){
   navigator.requestMIDIAccess({sysex:false}).then(midi=>{
     midiDot.classList.add('on');midiLbl.textContent='MIDI connecté';
-    const conn=()=>{for(const i of midi.inputs.values())i.onmidimessage=onMidi;};
+    const conn = () => {
+  const seen = new Set();
+  for(const i of midi.inputs.values()){
+    if(seen.has(i.name)) { i.onmidimessage = null; continue; }
+    seen.add(i.name);
+    i.onmidimessage = onMidi;
+  }
+};
     conn();midi.onstatechange=conn;
   }).catch(()=>{midiDot.classList.add('err');midiLbl.textContent='Accès MIDI refusé';});
 }else{midiDot.classList.add('err');midiLbl.textContent='WebMIDI non supporté';}
